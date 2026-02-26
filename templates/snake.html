@@ -1,0 +1,24 @@
+{{ define "snake.html" }}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ .ScientificName }} — Snakedex</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/static/js/map.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">🐍 Snakedex</a>
+    </div>
+  </header>
+
+  <main class="page-detail">
+    {{ template "detail.html" . }}
+  </main>
+</body>
+</html>
+{{ end }}

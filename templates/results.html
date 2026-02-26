@@ -1,0 +1,56 @@
+{{ define "results.html" }}
+{{ if .Cards }}
+  <p class="results-count">{{ .Total }} result(s) for <em>{{ .Query }}</em> — page {{ .Page }}/{{ .TotalPages }}</p>
+  <div class="cards-grid">
+    {{ range .Cards }}
+    <article class="snake-card"
+             hx-get="/snake/{{ .ID }}"
+             hx-target="#modal-body"
+             hx-swap="innerHTML"
+             hx-on::after-request="document.getElementById('modal').style.display='flex'"
+             style="cursor:pointer">
+      <div class="card-thumb">
+        {{ if .ThumbURL }}
+          <img src="{{ .ThumbURL }}" alt="{{ .ScientificName }}" loading="lazy">
+        {{ else }}
+          <div class="card-thumb--placeholder">🐍</div>
+        {{ end }}
+      </div>
+      <div class="card-body">
+        <h2 class="card-scientific">{{ .ScientificName }}</h2>
+        {{ if .CommonName }}
+          <p class="card-common">{{ .CommonName }}</p>
+        {{ end }}
+        <p class="card-obs">{{ .ObservationCount }} observations</p>
+      </div>
+    </article>
+    {{ end }}
+  </div>
+
+  {{ if or .HasPrev .HasNext }}
+  <nav class="pagination">
+    {{ if .HasPrev }}
+      <button class="pagination-btn"
+              hx-get="/search?q={{ .Query }}&page={{ .PrevPage }}&min_obs={{ .MinObs }}&sort={{ .Sort }}"
+              hx-target="#results"
+              hx-swap="innerHTML">← Prev</button>
+    {{ else }}
+      <button class="pagination-btn" disabled>← Prev</button>
+    {{ end }}
+
+    <span class="pagination-info">{{ .Page }} / {{ .TotalPages }}</span>
+
+    {{ if .HasNext }}
+      <button class="pagination-btn"
+              hx-get="/search?q={{ .Query }}&page={{ .NextPage }}&min_obs={{ .MinObs }}&sort={{ .Sort }}"
+              hx-target="#results"
+              hx-swap="innerHTML">Next →</button>
+    {{ else }}
+      <button class="pagination-btn" disabled>Next →</button>
+    {{ end }}
+  </nav>
+  {{ end }}
+{{ else }}
+  <p class="empty-state">No results for <em>{{ .Query }}</em>.</p>
+{{ end }}
+{{ end }}

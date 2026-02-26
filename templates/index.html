@@ -1,0 +1,75 @@
+{{ define "index.html" }}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snakedex</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="/static/js/map.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">🐍 Snakedex</a>
+      <p class="tagline">Encyclopedia of snakes</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="search-section">
+      <form id="search-form" class="search-form"
+            hx-get="/search"
+            hx-target="#results"
+            hx-trigger="submit"
+            hx-indicator="#spinner">
+        <input
+          type="search"
+          name="q"
+          class="search-input"
+          placeholder="Search a species — e.g. python, cobra, viper…"
+          autocomplete="off"
+          autofocus
+          {{ if .Query }}value="{{ .Query }}"{{ end }}
+        >
+        <button type="submit" class="search-btn">Search</button>
+      </form>
+      <div class="filter-bar">
+        <label class="filter-field">
+          <span class="filter-label">Min. observations</span>
+          <input form="search-form" type="number" name="min_obs" min="0" placeholder="0"
+                 value="{{ if .MinObs }}{{ .MinObs }}{{ end }}">
+        </label>
+        <label class="filter-field">
+          <span class="filter-label">Sort</span>
+          <select form="search-form" name="sort">
+            <option value="">Default</option>
+            <option value="obs_desc" {{ if eq .Sort "obs_desc" }}selected{{ end }}>Most observed</option>
+            <option value="obs_asc"  {{ if eq .Sort "obs_asc"  }}selected{{ end }}>Least observed</option>
+          </select>
+        </label>
+      </div>
+      <span id="spinner" class="htmx-indicator">Loading…</span>
+    </section>
+
+    <section id="results">
+      {{ if .Cards }}
+        {{ template "results.html" . }}
+      {{ else }}
+        <p class="empty-state">Enter a name above to explore the serpent world.</p>
+      {{ end }}
+    </section>
+  </main>
+
+  <!-- Modal overlay -->
+  <div id="modal" class="modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('modal').style.display='none'">✕</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+</body>
+</html>
+{{ end }}

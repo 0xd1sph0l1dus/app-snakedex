@@ -1,0 +1,62 @@
+{{ define "detail.html" }}
+<div class="detail">
+  <div class="detail-content">
+    <h1 class="detail-scientific">{{ .ScientificName }}</h1>
+    {{ if .CommonName }}
+      <p class="detail-common">{{ .CommonName }}</p>
+    {{ end }}
+
+    <dl class="detail-meta">
+      {{ if .Family }}
+        <dt>Family</dt><dd>{{ .Family }}</dd>
+      {{ end }}
+      {{ if .Genus }}
+        <dt>Genus</dt><dd>{{ .Genus }}</dd>
+      {{ end }}
+      <dt>Observations</dt><dd>{{ .ObservationCount }}</dd>
+      {{ if .WikipediaURL }}
+        <dt>Wikipedia</dt>
+        <dd><a href="{{ .WikipediaURL }}" target="_blank" rel="noopener">{{ .WikipediaURL }}</a></dd>
+      {{ end }}
+    </dl>
+
+    {{ if .WikipediaSummary }}
+      <div class="detail-summary">
+        <h3>About</h3>
+        <p>{{ .WikipediaSummary }}</p>
+      </div>
+    {{ end }}
+  </div>
+
+  {{ if .Photos }}
+    <div class="detail-gallery">
+      <h3>Photos</h3>
+      <div class="gallery">
+        {{ range .Photos }}
+          <img class="gallery-img" src="{{ . }}" alt="observation photo" loading="lazy">
+        {{ end }}
+      </div>
+    </div>
+  {{ end }}
+
+  {{ if .Coordinates }}
+    <div class="detail-map">
+      <h3>Observation map</h3>
+      <div id="obs-map"
+           data-coords="[{{ range $i, $c := .Coordinates }}{{ if $i }},{{ end }}[{{ $c.Lat }},{{ $c.Lng }}]{{ end }}]">
+      </div>
+    </div>
+  {{ end }}
+
+  {{ if .RecentLocations }}
+    <div class="detail-locations">
+      <h3>Recent locations</h3>
+      <ul>
+        {{ range .RecentLocations }}
+          <li>{{ . }}</li>
+        {{ end }}
+      </ul>
+    </div>
+  {{ end }}
+</div>
+{{ end }}
