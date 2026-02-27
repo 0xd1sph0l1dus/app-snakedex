@@ -1,0 +1,4 @@
+{{ define "fav-btn.html" }}<button
+  class="fav-btn{{ if .IsFavorited }} fav-btn--active{{ end }}"
+  hx-post="/snake/{{ .ID }}/favorite"
+  hx-swap="outerHTML">{{ if .IsFavorited }}♥ Saved{{ else }}♡ Save{{ end }}</button>{{ end }}

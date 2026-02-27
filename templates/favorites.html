@@ -1,0 +1,66 @@
+{{ define "favorites.html" }}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Favorites — Snakedex</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="/static/js/map.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">🐍 Snakedex</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-header">
+      <h1 class="page-title">♥ Favorites</h1>
+      <a href="/" class="btn-back">← Back to search</a>
+    </div>
+
+    {{ if .Cards }}
+      <p class="results-count">{{ len .Cards }} saved snake(s)</p>
+      <div class="cards-grid">
+        {{ range .Cards }}
+        <article class="snake-card"
+                 hx-get="/snake/{{ .ID }}"
+                 hx-target="#modal-body"
+                 hx-swap="innerHTML"
+                 hx-on::after-request="document.getElementById('modal').style.display='flex'"
+                 style="cursor:pointer">
+          <div class="card-thumb">
+            {{ if .ThumbURL }}
+              <img src="{{ .ThumbURL }}" alt="{{ .ScientificName }}" loading="lazy">
+            {{ else }}
+              <div class="card-thumb--placeholder">🐍</div>
+            {{ end }}
+          </div>
+          <div class="card-body">
+            <h2 class="card-scientific">{{ .ScientificName }}</h2>
+            {{ if .CommonName }}
+              <p class="card-common">{{ .CommonName }}</p>
+            {{ end }}
+          </div>
+        </article>
+        {{ end }}
+      </div>
+    {{ else }}
+      <p class="empty-state">No favorites yet — save snakes from the detail view.</p>
+    {{ end }}
+  </main>
+
+  <!-- Modal overlay -->
+  <div id="modal" class="modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+    <div class="modal-box">
+      <button class="modal-close" onclick="document.getElementById('modal').style.display='none'">✕</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+</body>
+</html>
+{{ end }}

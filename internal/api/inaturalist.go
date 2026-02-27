@@ -9,12 +9,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/0xd1sph0l1dus/snakedex/internal/cache"
 	"github.com/0xd1sph0l1dus/snakedex/internal/models"
 )
 
 const (
-	baseURL      = "https://api.inaturalist.org/v1"
+	baseURL          = "https://api.inaturalist.org/v1"
 	serpentaeTaxonID = "85553"
+	ttlSearch        = 5 * time.Minute
+	ttlDetail        = 30 * time.Minute
 )
 
 var client = &http.Client{Timeout: 10 * time.Second}
@@ -76,13 +79,24 @@ type observationData struct {
 	Coordinates []models.Coordinate
 }
 
+type searchResult struct {
+	Cards []models.SnakeCard
+	Total int
+}
+
 // SearchSnakes queries iNaturalist taxa under Serpentes.
-// Returns the cards for the requested page and the total number of results.
-// minObs filters by minimum observation count (0 = no filter).
+// Results are cached for ttlSearch. minObs=0 disables the observations filter.
 func SearchSnakes(query string, page, minObs int) ([]models.SnakeCard, int, error) {
 	if page < 1 {
 		page = 1
 	}
+
+	cacheKey := fmt.Sprintf("search:%s:%d:%d", query, page, minObs)
+	if v, ok := cache.Get(cacheKey); ok {
+		r := v.(searchResult)
+		return r.Cards, r.Total, nil
+	}
+
 	params := url.Values{}
 	params.Set("q", query)
 	params.Set("taxon_id", serpentaeTaxonID)
@@ -113,11 +127,19 @@ func SearchSnakes(query string, page, minObs int) ([]models.SnakeCard, int, erro
 	for _, t := range result.Results {
 		cards = append(cards, taxonToCard(t))
 	}
+
+	cache.Set(cacheKey, searchResult{Cards: cards, Total: result.TotalResults}, ttlSearch)
 	return cards, result.TotalResults, nil
 }
 
 // GetSnakeDetails fetches full details for a taxon by ID.
+// Result is cached for ttlDetail.
 func GetSnakeDetails(id int) (*models.SnakeDetails, error) {
+	cacheKey := fmt.Sprintf("detail:%d", id)
+	if v, ok := cache.Get(cacheKey); ok {
+		return v.(*models.SnakeDetails), nil
+	}
+
 	resp, err := client.Get(fmt.Sprintf("%s/taxa/%d", baseURL, id))
 	if err != nil {
 		return nil, fmt.Errorf("inaturalist detail: %w", err)
@@ -161,6 +183,7 @@ func GetSnakeDetails(id int) (*models.SnakeDetails, error) {
 		details.Coordinates = obsData.Coordinates
 	}
 
+	cache.Set(cacheKey, details, ttlDetail)
 	return details, nil
 }
 
@@ -228,4 +251,20 @@ func fetchObservationData(taxonID int) (observationData, error) {
 
 func photoMediumURL(u string) string {
 	return strings.Replace(u, "/square.", "/medium.", 1)
+}
+
+// DirectSearcher implements service.Searcher using direct iNaturalist API calls.
+// Used in monolith mode (no SEARCH_SERVICE_URL env var set).
+type DirectSearcher struct{}
+
+func (DirectSearcher) Search(query string, page, minObs int) ([]models.SnakeCard, int, error) {
+	return SearchSnakes(query, page, minObs)
+}
+
+// DirectDetailer implements service.Detailer using direct iNaturalist API calls.
+// Used in monolith mode (no DETAIL_SERVICE_URL env var set).
+type DirectDetailer struct{}
+
+func (DirectDetailer) GetDetails(id int) (*models.SnakeDetails, error) {
+	return GetSnakeDetails(id)
 }

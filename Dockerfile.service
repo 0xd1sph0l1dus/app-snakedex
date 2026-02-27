@@ -1,0 +1,32 @@
+# Generic Dockerfile for stateless microservices (search-service, detail-service).
+# Build argument CMD selects which cmd/ package to compile.
+#
+# Usage:
+#   docker build --build-arg CMD=cmd/search-service -t snakedex-search .
+
+# ── Stage 1 : build ───────────────────────────────────────────────
+FROM golang:1.24-alpine AS builder
+
+ARG CMD
+RUN test -n "$CMD" || (echo "ERROR: ARG CMD is required" && exit 1)
+
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /service ./${CMD}
+
+# ── Stage 2 : runtime ─────────────────────────────────────────────
+FROM alpine:3.21
+
+RUN addgroup -S svc && adduser -S -G svc svc
+WORKDIR /app
+COPY --from=builder /service ./service
+
+USER svc
+EXPOSE 8081
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD wget -qO- http://localhost:${PORT:-8081}/healthz || exit 1
+
+CMD ["./service"]

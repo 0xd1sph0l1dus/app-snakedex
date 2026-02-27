@@ -1,0 +1,19 @@
+# Binary
+/bin/
+snakedex
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Environment
+.env
+.env.*
+
+# Go
+vendor/
+
+# OS
+.DS_Store
+Thumbs.db

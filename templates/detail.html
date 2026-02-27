@@ -1,10 +1,15 @@
 {{ define "detail.html" }}
 <div class="detail">
   <div class="detail-content">
-    <h1 class="detail-scientific">{{ .ScientificName }}</h1>
-    {{ if .CommonName }}
-      <p class="detail-common">{{ .CommonName }}</p>
-    {{ end }}
+    <div class="detail-title-row">
+      <div>
+        <h1 class="detail-scientific">{{ .ScientificName }}</h1>
+        {{ if .CommonName }}
+          <p class="detail-common">{{ .CommonName }}</p>
+        {{ end }}
+      </div>
+      {{ template "fav-btn.html" . }}
+    </div>
 
     <dl class="detail-meta">
       {{ if .Family }}

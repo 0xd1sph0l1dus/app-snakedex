@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: frontend
+    static_configs:
+      - targets: ["frontend:8080"]
+
+  - job_name: search-service
+    static_configs:
+      - targets: ["search-service:8081"]
+
+  - job_name: detail-service
+    static_configs:
+      - targets: ["detail-service:8082"]
